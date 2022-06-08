@@ -1,53 +1,97 @@
 function CheckColision () {
     if (enviroment.isTouching(edge)) {
         enviroment.delete()
+        enviroment_2.delete()
         enviroAlive = 0
+        enviroAlive_2 = 0
         score += 1
     } else if (enviroment.isTouching(edge2)) {
         enviroment.delete()
+        enviroment_2.delete()
         enviroAlive = 0
+        enviroAlive_2 = 0
         score += 1
     } else if (enviroment.isTouching(edge3)) {
         enviroment.delete()
+        enviroment_2.delete()
         enviroAlive = 0
+        enviroAlive_2 = 0
         score += 1
     } else if (enviroment.isTouching(edge4)) {
         enviroment.delete()
+        enviroment_2.delete()
         enviroAlive = 0
+        enviroAlive_2 = 0
         score += 1
     } else if (enviroment.isTouching(edge5)) {
         enviroment.delete()
+        enviroment_2.delete()
         enviroAlive = 0
+        enviroAlive_2 = 0
         score += 1
+    }
+}
+function moveObstacles () {
+    enviroment.change(LedSpriteProperty.Y, 1)
+    if (enviroAlive_2) {
+        enviroment_2.change(LedSpriteProperty.Y, 1)
     }
 }
 input.onButtonPressed(Button.A, function () {
     player.change(LedSpriteProperty.X, -1)
+    basic.pause(delay)
 })
-function makeObstacle () {
+function Level_2 () {
+    if (!(enviroAlive)) {
+        enviroment = game.createSprite(randint(0, 5), 0)
+        enviroAlive = 1
+    }
+    if (!(enviroAlive_2)) {
+        enviroment_2 = game.createSprite(randint(0, 5), 0)
+    }
+}
+input.onGesture(Gesture.TiltLeft, function () {
+    player.change(LedSpriteProperty.X, -1)
+    basic.pause(delay)
+})
+function speedForward () {
+    if (randint(0, 10) == 5) {
+        player.change(LedSpriteProperty.Y, -1)
+        basic.pause(delay)
+        basic.pause(delay)
+        player.change(LedSpriteProperty.Y, 1)
+    }
+}
+function Level_1 () {
     if (!(enviroAlive)) {
         enviroment = game.createSprite(randint(0, 5), 0)
         enviroAlive = 1
     }
 }
-function speedForward () {
-    if (randint(0, 10) == 5) {
-        player.change(LedSpriteProperty.Y, -1)
-        basic.pause(delay)
-        player.change(LedSpriteProperty.Y, 1)
-    }
-}
 input.onButtonPressed(Button.AB, function () {
-    if (game.isRunning()) {
-        game.pause()
+    running = 0
+    while (!(running)) {
+        if (!(enviroment.isDeleted())) {
+            enviroment.delete()
+        }
         basic.showNumber(score)
+        basic.pause(5000)
+        running = 1
     }
-    basic.pause(5000)
 })
 input.onButtonPressed(Button.B, function () {
     player.change(LedSpriteProperty.X, 1)
+    basic.pause(delay)
+})
+input.onGesture(Gesture.TiltRight, function () {
+    player.change(LedSpriteProperty.X, 1)
+    basic.pause(delay)
 })
 function loadItems () {
+    delay = 300
+    score = 0
+    player = game.createSprite(2, 4)
+    basic.pause(delay)
     player.change(LedSpriteProperty.Y, -1)
     edge = game.createSprite(0, 0)
     edge2 = game.createSprite(1, 0)
@@ -62,10 +106,19 @@ function loadItems () {
         edge5.change(LedSpriteProperty.Y, 1)
         basic.pause(delay)
     }
+    running = 0
+    nextLevel = 0
+    sadFace = images.createImage(`
+        # # . # #
+        # # . # #
+        . . . . .
+        . # # # .
+        # . . . #
+        `)
     trophy = images.createImage(`
         # . . . #
         # # # # #
-        . # # . .
+        . # # # .
         . . # . .
         . # # # .
         `)
@@ -75,7 +128,17 @@ function checkWinLoss () {
         basic.showNumber(score)
         basic.pause(delay)
         basic.pause(delay)
-        game.gameOver()
+        basic.showString("GAMEOVER")
+        basic.pause(delay)
+        basic.pause(delay)
+        sadFace.showImage(0)
+        basic.pause(delay)
+        basic.pause(delay)
+        for (let index = 0; index <= 255; index++) {
+            led.setBrightness(255 - index)
+            basic.pause(100)
+        }
+        control.reset()
     } else if (score == 100) {
         basic.showString("YOU WIN!!!")
         basic.pause(delay)
@@ -90,32 +153,34 @@ function checkWinLoss () {
     }
 }
 let trophy: Image = null
+let sadFace: Image = null
+let nextLevel = 0
+let running = 0
+let delay = 0
+let player: game.LedSprite = null
+let score = 0
+let enviroAlive_2 = 0
 let enviroAlive = 0
+let enviroment_2: game.LedSprite = null
 let edge5: game.LedSprite = null
 let edge4: game.LedSprite = null
 let edge3: game.LedSprite = null
 let edge2: game.LedSprite = null
 let edge: game.LedSprite = null
 let enviroment: game.LedSprite = null
-let player: game.LedSprite = null
-let score = 0
-let delay = 0
-delay = 300
-score = 0
-player = game.createSprite(2, 4)
-basic.pause(delay)
 loadItems()
-loops.everyInterval(50000, function () {
-    makeObstacle()
-    enviroment.change(LedSpriteProperty.Y, 1)
-    makeObstacle()
-    enviroment.change(LedSpriteProperty.Y, 1)
-})
 basic.forever(function () {
-    makeObstacle()
+    if (nextLevel > 0) {
+        Level_2()
+    } else {
+        Level_1()
+    }
     speedForward()
     CheckColision()
     checkWinLoss()
-    enviroment.change(LedSpriteProperty.Y, 1)
-    basic.pause(delay)
+    moveObstacles()
+    basic.pause(randint(150, 250))
+})
+loops.everyInterval(30000, function () {
+    nextLevel += 1
 })
